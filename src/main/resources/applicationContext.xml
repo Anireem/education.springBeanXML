@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans  xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--1.Ссылка на проперти, понадобится в блоке 5-->
+    <context:property-placeholder location="classpath:musicPlayer.properties"/>
+
+    <!--2.Создание тестового бина-->
+    <bean id="testBean"
+          class="com.example.education.TestBean">
+        <constructor-arg value="Neil"/>
+    </bean>
+
+    <!--2.1
+    * по умолчанию у всех бинов scope - singleton, здесь он указан явно
+    * также есть scope scope="prototype", getBean - всегда создает новый бин
+    *
+    * doMyInit: метод класса ClassicalMusic, запускается при инициализации бина
+    * doMyDestroy: метод класса ClassicalMusic, запускается при уничтожении бина
+    * методы doMyInit и doMyDestroy не должны иметь аргументов
+    * destroy-method не вызывается для scope="prototype"
+    * init-method для singleton вызывается только 1 раз
+    *
+    * в п 2.2 если бин создается не через new, а через factory, то указываем
+    * метод factory (в текущем примере такого метода нет, просто пример)
+    -->
+    <bean id="musicBean"
+        class="com.example.education.xml_dependency_injection.ClassicalMusic"
+        scope="singleton"
+        init-method="doMyInit"
+        destroy-method="doMyDestroy">
+        <!--2.2factory-method="getClassicalMusic">-->
+    </bean>
+
+    <bean id="rockMusicBean"
+          class="com.example.education.xml_dependency_injection.RockMusic">
+    </bean>
+
+    <!--3.Внедрение зависимости через конструктор-->
+    <!--
+    <bean id="musicPlayer"
+          class="com.example.education.xml_dependency_injection.MusicPlayer">
+        <constructor-arg ref="musicBean"/>
+    </bean>
+    -->
+
+    <!--4.Внедрение зависимости с помощью сеттера,
+    должен быть пустой конструктор,
+    должны быть сеттеры на property
+    спринг сам находит метод setMusic-->
+    <bean id="musicPlayer"
+        class="com.example.education.xml_dependency_injection.MusicPlayer"
+        scope="prototype">
+        <property name="music" ref="musicBean"/> <!--внедрение ссылки-->
+        <property name="name" value="bumbox"/> <!--внедрение String-->
+        <property name="volume" value="100"/> <!--внедрение int-->
+        <property name="color" value="${musicPlayer.color}"/> <!--внедрение int через файл preperties из п.1-->
+        <property name="musicList"> <!--внедрение List'а-->
+            <list>
+                <ref bean="musicBean"/>
+                <ref bean="rockMusicBean"/>
+            </list>
+        </property>
+    </bean>
+
+</beans>
